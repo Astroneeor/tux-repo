@@ -4,6 +4,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {
+  width: 100%;
+  max-width: 100%;
   height: 100%;
   background: var(--bg);
   color: var(--fg);
@@ -747,102 +749,149 @@ html, body, #root {
 @media (max-width: 600px) {
   :root {
     --toolbar-w: 0px;
-    /* 2px border + 56px mobile-tools + 1px + 44px palette + 1px + ~74px mascot = 178px
-       draw-active adds 45px on top of this via #app.draw-active below */
-    --bottom-h: 178px;
+    /* Budget: 2px border + 48px nav + 1px + 42px palette + 1px + ~66px mascot = 160px */
+    --bottom-h: 160px;
   }
 
-  /* ── App grid: single column, safe-area-aware ── */
+  /* ── App grid ──────────────────────────────────────────────
+     KEY FIX: minmax(0, 1fr) instead of 1fr.
+     Plain `1fr` is `minmax(auto, 1fr)` — the auto minimum lets the
+     track grow to min-content, which was inflating the column to
+     588px on a 375px screen because #bubble had max-width:none.
+     minmax(0, 1fr) hard-floors the track at 0 so it stays ≤ container.
+  ── */
   #app {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: var(--topbar-h) 1fr
       calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px));
+    /* Push below notch on phones with status bar */
     padding-top: env(safe-area-inset-top, 0px);
+    /* Belt-and-suspenders: never let the app itself scroll sideways */
+    overflow-x: hidden;
   }
 
-  /* When draw controls are showing on mobile, add 45px + safe area */
+  /* Draw controls visible → expand bottom row by 45px */
   #app.draw-active {
     grid-template-rows: var(--topbar-h) 1fr
       calc(var(--bottom-h) + 45px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* ── TopBar: hide "Tools" chip, center the section title ── */
+  /* ── TopBar ─────────────────────────────────────────────── */
+  /* Hide the "Tools" sidebar label — there's no sidebar on mobile */
   .panel-label { display: none; }
+  /* Center the section title in the now-full-width bar */
   #section-title {
     margin-left: 0;
     flex: 1;
     text-align: center;
-    font-size: 16px;
+    font-size: 15px;
   }
   #gesture-dots { margin-left: 0; }
 
-  /* ── Sidebar: gone ── */
+  /* ── Sidebar: gone ──────────────────────────────────────── */
   #toolbar { display: none; }
 
-  /* ── Canvas: full width in single-column grid ── */
+  /* ── Canvas ─────────────────────────────────────────────── */
+  /* grid-column:1 on a single-column grid → full viewport width */
   #canvas { grid-column: 1; grid-row: 2; }
 
-  /* ── Bottom: safe-area bottom padding ── */
-  #bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  /* ── Bottom bar ─────────────────────────────────────────── */
+  /* min-width:0 stops #bottom contributing its min-content to
+     the grid track sizing (would re-inflate the column) */
+  #bottom {
+    min-width: 0;
+    overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 
-  /* ── Mobile nav strip: 7 buttons ── */
-  #mobile-tools { display: flex; }
+  /* ── Mobile nav: icons only ─────────────────────────────── */
+  /* With 7 buttons in 375px, labels simply don't fit cleanly.
+     Icon-only keeps the bar readable; title= attribute on each
+     button provides accessible labels. The topbar title shows
+     which section is active so nothing is lost. */
+  #mobile-tools {
+    display: flex;
+    height: 48px;
+    padding: 4px 6px;
+    gap: 3px;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+  .mtbtn {
+    padding: 6px 2px;
+    border-radius: 8px;
+  }
+  /* Hide text labels — icons only on mobile */
+  .mtbtn span { display: none; }
+  .mtbtn svg { width: 22px; height: 22px; }
 
-  /* ── Draw controls: compact on mobile ── */
+  /* ── Draw controls ──────────────────────────────────────── */
   #draw-controls { padding: 0 8px; gap: 8px; height: 44px; }
   #clear-btn     { padding: 5px 9px; font-size: 10px; }
   #thickness-val { font-size: 10px; min-width: 24px; }
 
-  /* ── Palette: slightly shorter ── */
-  #palette { height: 44px; }
-  .swatch { width: 32px; height: 32px; border-radius: 9px; }
+  /* ── Palette ─────────────────────────────────────────────── */
+  #palette { height: 42px; padding: 5px 6px; }
+  .swatch { width: 28px; height: 28px; border-radius: 8px; }
 
-  /* ── Mascot: scale down to fit ── */
-  #mascot { width: 42px; height: 52px; }
-  #mascot-row { padding: 4px 8px; gap: 8px; }
+  /* ── Mascot row ─────────────────────────────────────────── */
+  #mascot { width: 40px; height: 50px; }
+  #mascot-row {
+    padding: 6px 10px;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  /* Bubble: min-width:0 + flex:1 lets it fill remaining space
+     without ever setting max-width:none (which was the root cause
+     of the 588px grid column bug — it made min-content unbounded) */
   #bubble {
     font-size: 12px;
     padding: 6px 10px;
-    max-width: none;
-    flex: 1;
     min-width: 0;
+    flex: 1;
+    max-width: unset;   /* fall back to the element's normal layout, not "none" */
   }
 
-  /* ── Sections ── */
-  .section { padding: 20px 16px; }
-  .sh1 { font-size: clamp(22px, 6vw, 32px); }
-  .sub  { font-size: 13px; margin-bottom: 20px; }
+  /* ── Sections ───────────────────────────────────────────── */
+  .section { padding: 20px 16px; overflow-x: hidden; }
+  .sh1 { font-size: clamp(20px, 5.5vw, 30px); }
+  .sub  { font-size: 13px; margin-bottom: 18px; }
 
   /* About */
   .about-grid { grid-template-columns: 1fr; gap: 0; }
   .profile-card { display: none; }
+  .bio p { font-size: 14px; }
 
   /* Projects */
-  .proj-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .proj-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
   .proj-card { padding: 14px; }
 
   /* Contact */
   .clinks { max-width: 100%; gap: 10px; }
-  .clink { padding: 13px 16px; gap: 12px; }
-  .clink-icon { width: 36px; height: 36px; flex-shrink: 0; }
+  .clink { padding: 12px 14px; gap: 10px; }
+  .clink-icon { width: 34px; height: 34px; flex-shrink: 0; }
 
   /* Resume */
   .resume-grid { grid-template-columns: 1fr; gap: 24px; }
 
-  /* Nav hint */
+  /* Nav hint: sits above the bottom bar */
   #nav-hint { font-size: 11px; padding: 3px 12px; }
 }
 
 /* ============================================================
-   RESPONSIVE — SMALL PHONE  (≤400px)
+   RESPONSIVE — SMALL PHONE  (≤380px)
    ============================================================ */
-@media (max-width: 400px) {
+@media (max-width: 380px) {
   .proj-grid { grid-template-columns: 1fr; }
-  .mtbtn { padding: 4px 1px; }
-  .mtbtn span { font-size: 8px; }
   .section { padding: 16px 12px; }
+  .clink { padding: 10px 12px; gap: 8px; }
   .clink-value { font-size: 12px; }
-  #palette { height: 40px; }
-  .swatch { width: 28px; height: 28px; }
+  #palette { height: 38px; }
+  .swatch { width: 24px; height: 24px; }
   #draw-controls { height: 40px; padding: 0 6px; gap: 6px; }
+  #clear-btn { font-size: 9px; padding: 4px 7px; }
 }
