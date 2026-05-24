@@ -78,10 +78,10 @@ export function useDrawing() {
     saveTimer.current = setTimeout(() => savePaths(nextPaths), 300)
   }, [])
 
-  const startPath = useCallback((point: DrawPoint, color: string, tool: 'pen' | 'eraser') => {
+  const startPath = useCallback((point: DrawPoint, color: string, tool: 'pen' | 'eraser', lw: number) => {
     currentPath.current = {
       color,
-      lineWidth: tool === 'eraser' ? 24 : 3,
+      lineWidth: tool === 'eraser' ? 24 : Math.max(1, Math.min(lw, 40)),
       tool,
       points: [point],
     }

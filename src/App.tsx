@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import TopBar from './components/TopBar'
 import Toolbar from './components/Toolbar'
 import MobileTools from './components/MobileTools'
+import DrawControls from './components/DrawControls'
 import StarField from './components/StarField'
 import DrawingLayer from './components/DrawingLayer'
 import Mascot from './components/Mascot'
@@ -28,6 +29,7 @@ export default function App() {
   const [magicMode, setMagicMode] = useState(false)
   const [activeTool, setActiveTool] = useState<'pen' | 'eraser'>('pen')
   const [activeColor, setActiveColor] = useState(SWATCHES[2])
+  const [lineWidth, setLineWidth] = useState(3)
   const [message, setMessage] = useState(TIPS.about)
   const [flash, setFlash] = useState(false)
 
@@ -107,6 +109,11 @@ export default function App() {
     }
   }, [drawMode, say])
 
+  const handleClear = useCallback(() => {
+    clearDrawing()
+    say('Canvas cleared! Start fresh ✨')
+  }, [clearDrawing, say])
+
   const handleQuip = useCallback(() => {
     say(randomQuip())
   }, [say])
@@ -150,8 +157,14 @@ export default function App() {
 
   const currentSectionIndex = SECTIONS.indexOf(current)
 
+  // App-level class drives the grid row height so draw-controls bar fits
+  const appClass = [
+    drawMode ? 'draw-active' : '',
+    magicMode ? 'magic-active' : '',
+  ].filter(Boolean).join(' ') || undefined
+
   return (
-    <div id="app">
+    <div id="app" className={appClass}>
       <TopBar
         title={title}
         currentSection={current}
@@ -187,13 +200,14 @@ export default function App() {
           active={drawMode}
           activeTool={activeTool}
           activeColor={activeColor}
+          lineWidth={lineWidth}
           onStart={startPath}
           onExtend={extendPath}
           onEnd={endPath}
           currentPathRef={currentPath}
         />
 
-        <div className={sectionClass('about')}   id="sec-about"    style={drawMode ? { pointerEvents: 'none' } : undefined}><About /></div>
+        <div className={sectionClass('about')}    id="sec-about"    style={drawMode ? { pointerEvents: 'none' } : undefined}><About /></div>
         <div className={sectionClass('projects')} id="sec-projects"  style={drawMode ? { pointerEvents: 'none' } : undefined}><Projects /></div>
         <div className={sectionClass('contact')}  id="sec-contact"   style={drawMode ? { pointerEvents: 'none' } : undefined}><Contact /></div>
         <div className={sectionClass('resume')}   id="sec-resume"    style={drawMode ? { pointerEvents: 'none' } : undefined}><Resume /></div>
@@ -204,10 +218,22 @@ export default function App() {
           activeSection={current}
           magicMode={magicMode}
           drawMode={drawMode}
+          activeTool={activeTool}
           onSection={handleSection}
           onMagicToggle={handleMagicToggle}
           onDrawToggle={handleDrawToggle}
+          onEraserClick={handleEraserClick}
         />
+
+        {/* Draw controls — only visible when draw mode is on */}
+        {drawMode && (
+          <DrawControls
+            lineWidth={lineWidth}
+            onLineWidth={setLineWidth}
+            onClear={handleClear}
+          />
+        )}
+
         <Palette activeColor={activeColor} onColorSelect={handleColorSelect} />
         <Mascot message={message} onQuip={handleQuip} />
       </div>

@@ -499,13 +499,15 @@ html, body, #root {
 .mtbtn {
   display: flex; flex-direction: column;
   align-items: center; gap: 2px;
-  padding: 5px 8px;
+  padding: 5px 3px;
   border-radius: 9px;
   border: 1.5px solid var(--border);
   background: linear-gradient(145deg, var(--btn-hi), var(--btn-lo));
   cursor: pointer;
   transition: border-color 0.12s, background 0.12s;
   flex: 1;
+  min-width: 0;       /* allow flex children to shrink below content size */
+  overflow: hidden;   /* clip anything that still overflows the button */
   color: var(--fg);
 }
 .mtbtn.active {
@@ -520,8 +522,112 @@ html, body, #root {
   border-color: var(--accent-g);
   background: linear-gradient(145deg, var(--btn-draw-hi), var(--btn-draw-lo));
 }
-.mtbtn svg { width: 20px; height: 20px; }
-.mtbtn span { font-family: var(--f-display); font-size: 9px; color: var(--fg); }
+.mtbtn svg { width: 20px; height: 20px; flex-shrink: 0; }
+.mtbtn span {
+  font-family: var(--f-display);
+  font-size: 9px;
+  color: var(--fg);
+  /* prevent label from blowing out the button width */
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+  line-height: 1;
+}
+
+/* ── Draw controls bar (thickness + clear) ─────────────────── */
+#draw-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 10px;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-hi);
+  background: linear-gradient(145deg, var(--btn-hi), var(--btn-lo));
+  color: var(--fg);
+  font-family: var(--f-display);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+}
+#clear-btn:hover {
+  border-color: #e05050;
+  background: linear-gradient(145deg, oklch(22% 0.06 15), oklch(17% 0.05 15));
+  box-shadow: 0 0 8px oklch(55% 0.18 15 / 0.35);
+}
+#clear-btn:active { transform: translateY(1px); }
+#clear-btn svg { flex-shrink: 0; }
+
+#thickness-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  color: var(--muted);
+  min-width: 0;
+}
+
+#thickness {
+  flex: 1;
+  min-width: 60px;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-hi);
+  outline: none;
+  cursor: pointer;
+}
+#thickness::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 7px var(--glow);
+  cursor: pointer;
+  transition: box-shadow 0.12s;
+}
+#thickness::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 12px var(--glow);
+}
+#thickness::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+#thickness-val {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* expand bottom row when draw controls are visible */
+#app.draw-active {
+  grid-template-rows: var(--topbar-h) 1fr calc(var(--bottom-h) + 45px);
+}
 
 /* Palette */
 #palette {
@@ -641,20 +747,23 @@ html, body, #root {
 @media (max-width: 600px) {
   :root {
     --toolbar-w: 0px;
-    /* Increased from 148px:
-       2px border-top + 56px mobile-tools + 1px divider
-       + 44px palette + 1px divider + ~74px mascot row = 178px */
+    /* 2px border + 56px mobile-tools + 1px + 44px palette + 1px + ~74px mascot = 178px
+       draw-active adds 45px on top of this via #app.draw-active below */
     --bottom-h: 178px;
   }
 
   /* ── App grid: single column, safe-area-aware ── */
   #app {
     grid-template-columns: 1fr;
-    /* Stretch row 3 for iPhone home-indicator */
     grid-template-rows: var(--topbar-h) 1fr
       calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px));
-    /* Push content below the status-bar notch */
     padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* When draw controls are showing on mobile, add 45px + safe area */
+  #app.draw-active {
+    grid-template-rows: var(--topbar-h) 1fr
+      calc(var(--bottom-h) + 45px + env(safe-area-inset-bottom, 0px));
   }
 
   /* ── TopBar: hide "Tools" chip, center the section title ── */
@@ -670,22 +779,25 @@ html, body, #root {
   /* ── Sidebar: gone ── */
   #toolbar { display: none; }
 
-  /* ── Canvas: spans the now single-column grid ── */
+  /* ── Canvas: full width in single-column grid ── */
   #canvas { grid-column: 1; grid-row: 2; }
 
   /* ── Bottom: safe-area bottom padding ── */
-  #bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
+  #bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-  /* ── Mobile nav strip ── */
+  /* ── Mobile nav strip: 7 buttons ── */
   #mobile-tools { display: flex; }
 
-  /* ── Palette: slightly shorter, swatches touch-friendly ── */
+  /* ── Draw controls: compact on mobile ── */
+  #draw-controls { padding: 0 8px; gap: 8px; height: 44px; }
+  #clear-btn     { padding: 5px 9px; font-size: 10px; }
+  #thickness-val { font-size: 10px; min-width: 24px; }
+
+  /* ── Palette: slightly shorter ── */
   #palette { height: 44px; }
   .swatch { width: 32px; height: 32px; border-radius: 9px; }
 
-  /* ── Mascot: scale down to fit the reduced mascot-row ── */
+  /* ── Mascot: scale down to fit ── */
   #mascot { width: 42px; height: 52px; }
   #mascot-row { padding: 4px 8px; gap: 8px; }
   #bubble {
@@ -726,10 +838,11 @@ html, body, #root {
    ============================================================ */
 @media (max-width: 400px) {
   .proj-grid { grid-template-columns: 1fr; }
-  .mtbtn { padding: 4px 2px; }
+  .mtbtn { padding: 4px 1px; }
   .mtbtn span { font-size: 8px; }
   .section { padding: 16px 12px; }
   .clink-value { font-size: 12px; }
   #palette { height: 40px; }
   .swatch { width: 28px; height: 28px; }
+  #draw-controls { height: 40px; padding: 0 6px; gap: 6px; }
 }

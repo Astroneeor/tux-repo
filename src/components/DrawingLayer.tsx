@@ -6,7 +6,8 @@ type Props = {
   active: boolean
   activeTool: 'pen' | 'eraser'
   activeColor: string
-  onStart:  (p: DrawPoint, color: string, tool: 'pen' | 'eraser') => void
+  lineWidth: number
+  onStart:  (p: DrawPoint, color: string, tool: 'pen' | 'eraser', lw: number) => void
   onExtend: (p: DrawPoint) => void
   onEnd:    () => void
   currentPathRef: React.MutableRefObject<DrawPath | null>
@@ -57,7 +58,7 @@ function getCtx(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
 // ── Component ─────────────────────────────────────────────────
 
 export default function DrawingLayer({
-  paths, active, activeTool, activeColor,
+  paths, active, activeTool, activeColor, lineWidth,
   onStart, onExtend, onEnd, currentPathRef,
 }: Props) {
   const canvasRef  = useRef<HTMLCanvasElement>(null)
@@ -130,7 +131,7 @@ export default function DrawingLayer({
     e.preventDefault()
     isDrawing.current = true
     try { (e.target as HTMLElement).setPointerCapture(e.pointerId) } catch { /* ignore */ }
-    onStart(getPoint(e), activeColor, activeTool)
+    onStart(getPoint(e), activeColor, activeTool, lineWidth)
   }
 
   const onPointerMove = (e: React.PointerEvent) => {
