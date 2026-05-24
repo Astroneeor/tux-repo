@@ -1,0 +1,14 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-XSS-Protection: 1; mode=block
+
+# Long-cache hashed assets (Vite fingerprints everything in /assets/)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Never cache the HTML entry point
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate

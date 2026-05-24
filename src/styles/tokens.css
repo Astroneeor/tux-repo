@@ -1,0 +1,59 @@
+/* ── Fallback values for browsers without oklch support (Safari <15.4) ── */
+:root {
+  --bg:           #0d0f1a;
+  --panel-bg:     #111520;
+  --surface:      #161b28;
+  --fg:           #dde2f0;
+  --muted:        #6b7494;
+  --border:       #252d45;
+  --border-hi:    #333e58;
+  --accent:       #4a7fff;
+  --accent-g:     #3dcc7a;
+  --accent-m:     #b060ff;
+  --glow:         rgba(74, 127, 255, 0.35);
+  --glow-m:       rgba(176, 96, 255, 0.35);
+  --btn-hi:       #1a2035;
+  --btn-lo:       #131828;
+  --btn-act-hi:   #1e3070;
+  --btn-act-lo:   #142055;
+  --btn-mag-hi:   #2a1a60;
+  --btn-mag-lo:   #1a1245;
+  --btn-draw-hi:  #1a3030;
+  --btn-draw-lo:  #112020;
+}
+
+/* ── Override with oklch on supporting browsers ── */
+@supports (color: oklch(0% 0 0)) {
+  :root {
+    --bg:           oklch(11% 0.025 265);
+    --panel-bg:     oklch(14% 0.028 265);
+    --surface:      oklch(17% 0.030 265);
+    --fg:           oklch(90% 0.008 265);
+    --muted:        oklch(55% 0.015 265);
+    --border:       oklch(24% 0.035 265);
+    --border-hi:    oklch(32% 0.030 265);
+    --accent:       oklch(62% 0.19 255);
+    --accent-g:     oklch(65% 0.15 155);
+    --accent-m:     oklch(72% 0.20 305);
+    --glow:         oklch(62% 0.19 255 / 0.35);
+    --glow-m:       oklch(72% 0.20 305 / 0.35);
+    --btn-hi:       oklch(20% 0.035 265);
+    --btn-lo:       oklch(15% 0.028 265);
+    --btn-act-hi:   oklch(28% 0.12 255);
+    --btn-act-lo:   oklch(18% 0.09 255);
+    --btn-mag-hi:   oklch(25% 0.10 305);
+    --btn-mag-lo:   oklch(18% 0.07 305);
+    --btn-draw-hi:  oklch(25% 0.10 155);
+    --btn-draw-lo:  oklch(18% 0.07 155);
+  }
+}
+
+:root {
+  --f-display: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive;
+  --f-body:    -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --f-mono:    'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  --toolbar-w:  112px;
+  --topbar-h:   44px;
+  --bottom-h:   122px;
+}

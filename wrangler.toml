@@ -1,0 +1,10 @@
+# Cloudflare Pages config — used by `wrangler pages deploy`
+# Alternatively, configure build settings in the Pages dashboard:
+#   Build command:      npm run build
+#   Build output dir:   dist
+#   Root dir:           /
+#   Node version:       20
+
+name = "astroneeor"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-05-24"
