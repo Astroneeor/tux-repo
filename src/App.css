@@ -224,6 +224,7 @@ html, body, #root {
   inset: 0;
   padding: 32px 44px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   z-index: 1;
   opacity: 0;
   transform: translateX(28px);
@@ -429,6 +430,7 @@ html, body, #root {
 .clink-value {
   font-size: 14px;
   color: var(--fg);
+  word-break: break-all;
 }
 
 /* Resume */
@@ -623,21 +625,111 @@ html, body, #root {
 }
 
 /* ============================================================
-   RESPONSIVE — MOBILE
+   RESPONSIVE — TABLET  (sidebar visible but narrower)
+   ============================================================ */
+@media (max-width: 860px) and (min-width: 601px) {
+  :root { --toolbar-w: 88px; }
+  .tbtn svg { width: 24px; height: 24px; }
+  .tbtn span { font-size: 9px; }
+  .section { padding: 24px 28px; }
+  .about-grid { grid-template-columns: 1fr 220px; gap: 24px; }
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE  (≤600px)
    ============================================================ */
 @media (max-width: 600px) {
-  :root { --toolbar-w: 0px; --bottom-h: 148px; }
+  :root {
+    --toolbar-w: 0px;
+    /* Increased from 148px:
+       2px border-top + 56px mobile-tools + 1px divider
+       + 44px palette + 1px divider + ~74px mascot row = 178px */
+    --bottom-h: 178px;
+  }
+
+  /* ── App grid: single column, safe-area-aware ── */
+  #app {
+    grid-template-columns: 1fr;
+    /* Stretch row 3 for iPhone home-indicator */
+    grid-template-rows: var(--topbar-h) 1fr
+      calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px));
+    /* Push content below the status-bar notch */
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* ── TopBar: hide "Tools" chip, center the section title ── */
+  .panel-label { display: none; }
+  #section-title {
+    margin-left: 0;
+    flex: 1;
+    text-align: center;
+    font-size: 16px;
+  }
+  #gesture-dots { margin-left: 0; }
+
+  /* ── Sidebar: gone ── */
   #toolbar { display: none; }
-  #canvas { grid-column: 1; }
+
+  /* ── Canvas: spans the now single-column grid ── */
+  #canvas { grid-column: 1; grid-row: 2; }
+
+  /* ── Bottom: safe-area bottom padding ── */
+  #bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* ── Mobile nav strip ── */
   #mobile-tools { display: flex; }
-  #palette { height: 46px; }
-  .section { padding: 20px 18px; }
-  .about-grid { grid-template-columns: 1fr; }
+
+  /* ── Palette: slightly shorter, swatches touch-friendly ── */
+  #palette { height: 44px; }
+  .swatch { width: 32px; height: 32px; border-radius: 9px; }
+
+  /* ── Mascot: scale down to fit the reduced mascot-row ── */
+  #mascot { width: 42px; height: 52px; }
+  #mascot-row { padding: 4px 8px; gap: 8px; }
+  #bubble {
+    font-size: 12px;
+    padding: 6px 10px;
+    max-width: none;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Sections ── */
+  .section { padding: 20px 16px; }
+  .sh1 { font-size: clamp(22px, 6vw, 32px); }
+  .sub  { font-size: 13px; margin-bottom: 20px; }
+
+  /* About */
+  .about-grid { grid-template-columns: 1fr; gap: 0; }
   .profile-card { display: none; }
-  .contact-grid { grid-template-columns: 1fr; }
-  .resume-grid { grid-template-columns: 1fr; }
-  .clinks { max-width: 100%; }
+
+  /* Projects */
+  .proj-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .proj-card { padding: 14px; }
+
+  /* Contact */
+  .clinks { max-width: 100%; gap: 10px; }
+  .clink { padding: 13px 16px; gap: 12px; }
+  .clink-icon { width: 36px; height: 36px; flex-shrink: 0; }
+
+  /* Resume */
+  .resume-grid { grid-template-columns: 1fr; gap: 24px; }
+
+  /* Nav hint */
+  #nav-hint { font-size: 11px; padding: 3px 12px; }
 }
-@media (max-width: 420px) {
+
+/* ============================================================
+   RESPONSIVE — SMALL PHONE  (≤400px)
+   ============================================================ */
+@media (max-width: 400px) {
   .proj-grid { grid-template-columns: 1fr; }
+  .mtbtn { padding: 4px 2px; }
+  .mtbtn span { font-size: 8px; }
+  .section { padding: 16px 12px; }
+  .clink-value { font-size: 12px; }
+  #palette { height: 40px; }
+  .swatch { width: 28px; height: 28px; }
 }
